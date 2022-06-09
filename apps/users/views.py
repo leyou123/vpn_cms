@@ -2,6 +2,8 @@ import json
 import time
 import datetime
 import requests
+from django.db.models import Q
+from django.forms import model_to_dict
 from django.http import HttpResponseRedirect
 
 from django.http import JsonResponse
@@ -28,6 +30,11 @@ db6 = get_redis_connection('DB6')
 db10 = get_redis_connection('DB10')
 db11 = get_redis_connection('DB11')
 
+
+def get_end_time(time_begin):
+    time_end = time.time()
+    time2 = time_end - time_begin
+    return time2
 
 class Index(View):
     def get(self, request):
@@ -73,6 +80,8 @@ class Register(View):
         :param request:
         :return:+
         """
+        time_begin = time.time()
+
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes_result = aes.aesdecrypt(key)
@@ -102,12 +111,15 @@ class Register(View):
             #     db5.set(str(uuid + package_id), json.dumps(create_user.get_info()))
             #     return JsonResponse({"code": 200, "message": "success", "data": user.get_info()})
 
-        query_devices = Devices.objects.filter(uuid=uuid, package_id=package_id).first()
+        # query_devices = Devices.objects.filter(uuid=uuid, package_id=package_id).first()
+        query_devices = Devices.objects.filter(uuid=uuid, package_id=package_id)[0:1].values("user")
+
         platform = AppPlatform.objects.filter(platform_id=platform_id).first()
         user_config = UsersConfig.objects.filter(platform=platform).first()
 
         if query_devices:
-            uid = query_devices.user
+            # uid = query_devices.user
+            uid = query_devices[0].get("user")
             user = User.objects.filter(uid=uid).first()
             if not user:
                 # return self.register(uid, uuid, request, try_day, package_id, platform)
@@ -132,6 +144,7 @@ class Register(View):
 
         if user_config:
             try_day = user_config.temp_day
+
 
         return self.register(uuid, request, try_day, package_id, platform)
 
@@ -360,11 +373,14 @@ class Login(View):
         :param request:
         :return:+
         """
+        time_begin = time.time()
+
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes = Aescrypt()
         aes_result = aes.aesdecrypt(key)
         if aes_result != "leyou2021":
+            print(f"user/login :{get_end_time(time_begin)}")
             return JsonResponse({"code": 404, "message": 'key error'})
         uid = data.get("uid", "")
         uuid = data.get("uuid", "")
@@ -377,6 +393,7 @@ class Login(View):
         unbundling_uuid = data.get("unbundling_uuid", "")
 
         if not uid and not email:
+            print(f"user/login :{get_end_time(time_begin)}")
             return JsonResponse({"code": 404, "message": 'not found uid or email'})
 
         if unbundling_uid and unbundling_uuid:
@@ -390,29 +407,36 @@ class Login(View):
         }
 
         if not package_id:
+            print(f"user/login :{get_end_time(time_begin)}")
             return JsonResponse({"code": 404, "message": 'not found package_id'})
 
         platform = AppPlatform.objects.filter(platform_id=platform_id).first()
         if not platform:
+            print(f"user/login :{get_end_time(time_begin)}")
             return JsonResponse({"code": 404, "message": "not found platform"})
 
         if email:
             if not uuid:
+                print(f"user/login :{get_end_time(time_begin)}")
                 return JsonResponse({"code": 404, "message": 'not found uuid or email'})
 
             # 邮箱登录
             password = str_as_md5(password)
             user = User.objects.filter(platform=platform, email=email).first()
             if not user:
+                print(f"user/login :{get_end_time(time_begin)}")
                 return JsonResponse({"code": 404, "message": f"not found {email}"})
             if user.password != password:
+                print(f"user/login :{get_end_time(time_begin)}")
                 return JsonResponse({"code": 404, "message": f"Incorrect password"})
             user_data["uid"] = user.uid
+            print(f"user/login :{get_end_time(time_begin)}")
             return self.check_device(user, uuid, package_id, user_data)
 
         check_redis = self.redis_check(uuid, package_id)
 
         if check_redis:
+            print(f"user/login :{get_end_time(time_begin)}")
             return self.redis_check_device(check_redis, uuid, package_id,user_data,uid,platform_id)
 
         if uid:
@@ -420,9 +444,13 @@ class Login(View):
                 user = User.objects.filter(platform=platform, uid=uid).first()
                 user_data["uid"] = user.uid
                 if not user:
+                    print(f"user/login :{get_end_time(time_begin)}")
                     return JsonResponse({"code": 404, "message": f"not found {uid}"})
             except Exception as e:
+                print(f"user/login :{get_end_time(time_begin)}")
                 return JsonResponse({"code": 404, "message": "uid error"})
+
+            print(f"user/login :{get_end_time(time_begin)}")
             return self.check_device(user, uuid, package_id,user_data)
         #
         # if not uuid or not email:

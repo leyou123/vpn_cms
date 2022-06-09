@@ -1,5 +1,6 @@
 import json
 import requests
+import time
 
 from django.http import JsonResponse
 from django.views.generic.base import View
@@ -25,6 +26,7 @@ class Node(View):
         :param request:
         :return:
         """
+
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes_result = aes.aesdecrypt(key)
@@ -84,6 +86,7 @@ class Node(View):
             hosts.append(json_data)
         # hosts.sort(key=lambda x: x["weights"])
         # hosts.reverse()
+
         return JsonResponse({"code": 200, "message": "success", "data": hosts})
 
 
@@ -118,6 +121,7 @@ class Register(View):
             "password": uuid,
             "ip": ip
         }
+        # 'https://nodes.9527.click'
         url = f"{NODE_HOST}/user/create_single_user"
         try:
             response = requests.post(url=url, data=data, timeout=15)
@@ -170,6 +174,7 @@ class CountryNode(View):
         """
             获取所有过滤节点trojan节点
         """
+
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes_result = aes.aesdecrypt(key)
@@ -229,7 +234,7 @@ class CountryNode(View):
                 result.append(host)
             else:
                 continue
-                
+
         if new_hosts:
             cache_nodes[:-1]
             # db10.set(country, cache_nodes, ex=60 * 60)
