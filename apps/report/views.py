@@ -84,7 +84,7 @@ class ConnectView(View):
 
         # 组装入库数据
         push_data = {
-            "user_uuid": data.get("user_uuid", ""),
+            "user_uuid": data.get("uuid", ""),
             "user_ip": ip,
             "country": geo_info.get("country", ""),
             "city": geo_info.get("region", ""),
@@ -148,15 +148,15 @@ class PingFeedbackView(View):
         for item in items:
             # 组装入库数据
             push_data = {
-                "user_uuid": item.get("user_uuid", ""),
+                "user_uuid": item.get("uuid", ""),
                 "user_ip": ip,
                 "country": geo_info.get("country", ""),
                 "city": geo_info.get("region", ""),
                 "node_ip": item.get("node_ip", ""),
                 "node_name": item.get("node_name", ""),
-                "ping_val1": item.get("ping1", ""),
-                "ping_val2": item.get("ping2", ""),
-                "ping_val3": item.get("ping3", ""),
+                "ping_val1": item.get("ping_val1", ""),
+                "ping_val2": item.get("ping_val2", ""),
+                "ping_val3": item.get("ping_val3", ""),
                 "ping_result": item.get("ping_result", 1),
                 "ping_time": item.get("ping_time", "")
             }

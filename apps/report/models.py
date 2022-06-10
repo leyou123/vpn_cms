@@ -11,12 +11,12 @@ class LinkageRecord(models.Model):
     # 连接记录表：格式为：用户IP，用户国家，用户城市，节点ip，节点名称，ping结果【成功 / 失败】，连接结果【成功 / 失败】，连接时间，设备名称，网络，运营商
 
     PING_RESULT_CHOICES = (
-        (0, "成功"),
-        (1, "失败"),
+        (1, "成功"),
+        (0, "失败"),
     )
     CONNECT_RESULT_CHOICES = (
-        (0, "成功"),
-        (1, "失败"),
+        (1, "成功"),
+        (0, "失败"),
     )
 
     user_uuid = models.CharField(u'uuid', max_length=128, null=True, default=None, blank=True, db_index=True)
@@ -44,8 +44,8 @@ class PingFeedback(models.Model):
 
     # ping反馈表：格式为：用户IP，用户国家，用户城市，节点ip，节点名称，ping返回值，ping结果【成功 / 失败】，ping时间
     PING_RESULT_CHOICES = (
-        (0, "成功"),
-        (1, "失败"),
+        (1, "成功"),
+        (0, "失败"),
     )
 
     user_uuid = models.CharField(u'uuid', max_length=128, null=True, default=None, blank=True, db_index=True)
