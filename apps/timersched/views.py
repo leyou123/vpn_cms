@@ -13,7 +13,7 @@ db13 = get_redis_connection('DB13')
 
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(("127.0.0.1", 12500))
+    sock.bind(("127.0.0.1", 8000))
 except socket.error:
     print("!!!scheduler already started, DO NOTHING")
 else:

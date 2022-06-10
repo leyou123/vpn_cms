@@ -1429,17 +1429,23 @@ class Feedback(View):
         email = data.get("email", "")
         uid = data.get("uid", "")
         envet_type = data.get("type", "")
+        package_id = data.get("package_id", "")
 
         vip_type = {1: "正式会员", 2: "赠送会员", 3: "非会员", 4: "时长会员"}
         country = ""
         vip_name = ""
-        user_email = ""
+        user_email = data.get("email", "")
         user = User.objects.filter(uid=uid).first()
         if user:
             country = user.country
             v_type = user.member_type.members.type
             vip_name = vip_type.get(v_type)
-            user_email = user.email
+            # user_email = user.email
+
+        app_name = ""
+        app = AppPackage.objects.filter(package_id=package_id).first()
+        if app:
+            app_name = app.name
 
         result = UserFeedback.objects.create(
             uid=uid,
@@ -1450,7 +1456,7 @@ class Feedback(View):
         if result:
             dingding_api = DataLoggerAPI("6543720081", "1mtv8ux938ykgw030vi2tuc3yc201ikr")
             now_time = self.get_now_time()
-            message = f" 反馈通知:{now_time} \r\n 用户：{uid} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员类型：{vip_name} \r\n 类型：{envet_type} \r\n 内容：{content}"
+            message = f" 反馈通知:{now_time} \r\n 产品：{app_name} \r\n 用户：{uid} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员：{vip_name} \r\n 问题：{envet_type} \r\n 内容：{content}"
             dingding_api.dd_send_message(message, "vpnoperator")
             return JsonResponse({"code": 200, "message": "success"})
         return JsonResponse({"code": 404, "message": "data error"})
