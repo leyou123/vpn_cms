@@ -41,10 +41,8 @@ INSTALLED_APPS = [
     'apps.nodes.apps.NodesConfig',
     'apps.orders.apps.OrderConfig',
     'apps.report.apps.ReportConfig',
-    'apps.timersched.apps.TimerschedConfig',
     'crispy_forms',
     'xadmin',
-    'django_apscheduler',
 ]
 
 MIDDLEWARE = [

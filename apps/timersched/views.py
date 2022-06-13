@@ -87,7 +87,7 @@ def connect_task():
 
             try:
                 create_reuslt = LinkageRecord.objects.create(
-                    user_uuid=data.get("uuid", ""),
+                    user_uuid=data.get("user_uuid", ""),
                     user_ip=data.get("user_ip", ""),
                     country=data.get("country", ""),
                     city=data.get("city", ""),
@@ -129,7 +129,7 @@ def ping_task():
 
             try:
                 create_reuslt = PingFeedback.objects.create(
-                    user_uuid=data.get("uuid", ""),
+                    user_uuid=data.get("user_uuid", ""),
                     user_ip=data.get("user_ip", ""),
                     country=data.get("country", ""),
                     city=data.get("city", ""),

@@ -31,7 +31,6 @@ urlpatterns = [
     path(f'{api}manage/', include('manage.urls'), name="manage"),
     path(f'{api}orders/', include('orders.urls'), name="orders"),
     path(f'{api}report/', include('report.urls'), name="report"),
-    path(f'{api}timer/', include('timersched.urls'), name="timersched"),
 
     # path(f'api/v1/node/update_version', UpdateVersionInfo.as_view()),
     # path(f'api/v1/user/disposes', SetPackage.as_view()),
