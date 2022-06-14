@@ -57,7 +57,7 @@ class PingFeedback(models.Model):
     ping_val1 = models.CharField(u"ping返回值1", max_length=128, blank=True, null=True)
     ping_val2 = models.CharField(u"ping返回值2", max_length=128, blank=True, null=True)
     ping_val3 = models.CharField(u"ping返回值3", max_length=128, blank=True, null=True)
-    ping_result = models.IntegerField(u"ping结果", choices=PING_RESULT_CHOICES, default=1)
+    ping_result = models.IntegerField(u"ping结果", choices=PING_RESULT_CHOICES, default=1, db_index=True)
     ping_time = models.DateTimeField(u"ping时间", blank=True, null=True)
 
     class Meta:

@@ -30,8 +30,8 @@ def ping_task():
 def main():
 
     scheduler = BlockingScheduler()
-    scheduler.add_job(ping_task, 'interval', seconds=10)
-    scheduler.add_job(connect_task, 'interval', seconds=10)
+    scheduler.add_job(ping_task, 'interval', seconds=60 * 10)
+    scheduler.add_job(connect_task, 'interval', seconds=60 * 10)
 
     try:
         # 定时任务启动

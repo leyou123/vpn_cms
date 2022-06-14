@@ -189,7 +189,7 @@ class PingUpdate(View):
     """
 
     def post(self, request):
-        max_number = 10000
+        max_number = 50000
         target = ["AM", "am", "pm", "PM", "p.m", "a.m", "P.M", "A.M"]
         length = db13.llen("ping_data")
         if length >= max_number:
@@ -242,7 +242,7 @@ class PingUpdate(View):
 class ConnectUpdate(View):
 
     def post(self, request):
-        max_number = 10000
+        max_number = 50000
         target = ["AM", "am", "pm", "PM", "p.m", "a.m", "P.M", "A.M"]
         length = db13.llen("connect_data")
         if length >= max_number:
