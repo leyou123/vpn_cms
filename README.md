@@ -41,8 +41,8 @@ nohup python3 /root/vpn_cms/start_script/query_node_status.py  > /root/log/query
  删除用户
 nohup python3 /root/vpn_cms/start_script/del_temp_user.py  > /root/log/del_temp_user.txt 2>&1 &
 
- 上报ping和连接数据
-nohup python3 /root/vpn_cms/start_script/report_update.py  > /root/log/report_update.txt 2>&1 &
+ 上报ping和连接数据（在测试cms服务器运行）
+nohup python3 /root/scripts/report_update.py  > /root/log/report_update.txt 2>&1 &
 
 ```
 

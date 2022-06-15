@@ -1,5 +1,5 @@
 import json
-
+import time
 from django.http import JsonResponse
 from django.views.generic.base import View
 from apps.manage.models import Advertising, InduceConfig, ApiVersion, AppPackage,TimeConfig
@@ -50,6 +50,7 @@ class Version(View):
         """
             版本号
         """
+        time.sleep(2)
         data = json.loads(request.body.decode(encoding="utf-8"))
         package_id = data.get("package_id", "")
 
