@@ -9,7 +9,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from apps.manage.models import UsersConfig, MembersConfig, AppPlatform, ShareConfig, TimeConfig
 from apps.orders.models import Orders
-from apps.users.models import User, Devices, UserFeedback, UserShareTask, UserFeedBack
+from apps.users.models import User, Devices, UserFeedback, UserShareTask
 from apps.users.core import GeoIp, str_as_md5, send_email, random_str, str_as_md5_short, unbinding_send_email
 from apps.manage.models import AppPackage, SetMeal
 from utils.crypto import Aescrypt
@@ -1465,7 +1465,6 @@ class Feedback(View):
             return JsonResponse({"code": 200, "message": "success"})
         return JsonResponse({"code": 404, "message": "data error"})
 
-"反馈通知:2022-06-15 06:03:01产品：IOS Super VPN用户：1524130504398479360邮箱：1@qq.com国家：中国会员：正式会员问题：Something else内容：123456', 'to_group_name': 'vpnoperator"
 
 class DelTempUser(View):
 
