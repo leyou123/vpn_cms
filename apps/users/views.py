@@ -9,7 +9,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 from apps.manage.models import UsersConfig, MembersConfig, AppPlatform, ShareConfig, TimeConfig
 from apps.orders.models import Orders
-from apps.users.models import User, Devices, UserFeedback, UserShareTask
+from apps.users.models import User, Devices, UserFeedback, UserShareTask, UserFeedBack
 from apps.users.core import GeoIp, str_as_md5, send_email, random_str, str_as_md5_short, unbinding_send_email
 from apps.manage.models import AppPackage, SetMeal
 from utils.crypto import Aescrypt
@@ -1451,16 +1451,21 @@ class Feedback(View):
             uid=uid,
             content=content,
             email=email,
-            type=envet_type
+            type=envet_type,
+            name=app_name,
+            country=country,
+            vip_name=vip_name
         )
+
         if result:
             dingding_api = DataLoggerAPI("6543720081", "1mtv8ux938ykgw030vi2tuc3yc201ikr")
             now_time = self.get_now_time()
             message = f" 反馈通知:{now_time} \r\n 产品：{app_name} \r\n 用户：{uid} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员：{vip_name} \r\n 问题：{envet_type} \r\n 内容：{content}"
-            dingding_api.dd_send_message(message, "vpnoperator")
+            dingding_api.dd_send_message(message[:128], "vpnoperator")
             return JsonResponse({"code": 200, "message": "success"})
         return JsonResponse({"code": 404, "message": "data error"})
 
+"反馈通知:2022-06-15 06:03:01产品：IOS Super VPN用户：1524130504398479360邮箱：1@qq.com国家：中国会员：正式会员问题：Something else内容：123456', 'to_group_name': 'vpnoperator"
 
 class DelTempUser(View):
 

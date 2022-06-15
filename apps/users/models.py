@@ -150,6 +150,7 @@ class User(models.Model):
         return str(self.uid)
 
 
+
 class Devices(models.Model):
     id = models.AutoField(primary_key=True, auto_created=True)
     platform = models.ForeignKey(AppPlatform, on_delete=models.SET_NULL, verbose_name='应用平台', blank=True, null=True)
@@ -185,8 +186,6 @@ class Devices(models.Model):
 
 
 
-
-
 class UserFeedback(models.Model):
 
 
@@ -196,6 +195,11 @@ class UserFeedback(models.Model):
     email = models.CharField(u"邮箱", max_length=255, null=True, default=None, blank=True)
     content = models.TextField(u"内容", null=True, default=None, blank=True)
     create_time = models.DateTimeField(u"创建时间", auto_now_add=True, blank=True, null=True, db_index=True)
+
+    name = models.CharField(u"产品名称", max_length=128, null=True, default=None, blank=True)
+    country = models.CharField(u"国家", max_length=128, null=True, default=None, blank=True)
+    vip_name = models.CharField(u"会员类型", max_length=128, null=True, default=None, blank=True)
+
 
     class Meta:
         verbose_name = '用户反馈'
@@ -236,3 +240,5 @@ class UserShareTask(models.Model):
             "status": self.status
         }
         return info
+
+

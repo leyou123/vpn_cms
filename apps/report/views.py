@@ -240,7 +240,9 @@ class PingUpdate(View):
 
 
 class ConnectUpdate(View):
-
+    """
+        更新连接数据
+    """
     def post(self, request):
         max_number = 50000
         target = ["AM", "am", "pm", "PM", "p.m", "a.m", "P.M", "A.M"]
@@ -289,3 +291,16 @@ class ConnectUpdate(View):
             # 显式的提交一次事务
             transaction.savepoint_commit(save_id)
         return JsonResponse({"code": 200, "message": "success"})
+
+
+# class CountryView(View):
+#     """
+#         获取所有国家成功率
+#     """
+#     def post(self, request):
+#
+#         data = json.loads(request.body.decode(encoding="utf-8"))
+#
+#         # PingFeedback.objects.filter(ping_time=)
+#
+#         return JsonResponse({"code": 200, "message": "success", "data":{}})
