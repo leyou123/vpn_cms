@@ -116,7 +116,8 @@ class UserFeedbackAdmin(object):
     """
     model_icon = 'fa fa-bars'
 
-    list_display = ['uid', 'email', 'type']
+    list_display = ['create_time', 'name', 'uid', 'email', 'country', 'vip_name', 'type', 'content']
+
 
 
 xadmin.site.register(User, UserAdmin)
