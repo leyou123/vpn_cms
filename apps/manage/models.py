@@ -49,10 +49,17 @@ class ApiVersion(models.Model):
     """
       应用版本
     """
+    SWITCH_CHOICES = (
+        (1, "开"),
+        (0, "关"),
+    )
+
     id = models.AutoField(primary_key=True, auto_created=True)
     app = models.ForeignKey(AppPackage, on_delete=models.CASCADE, verbose_name='APP_ID', blank=True, null=True)
     version = models.CharField(u"线上版本号", max_length=32, null=True, default=None, blank=True)
     upgrade_version = models.CharField(u"强制升级版本号", max_length=32, null=True, default=None, blank=True)
+
+    switch = models.IntegerField(u"开关", choices=SWITCH_CHOICES, default=1)
 
     class Meta:
         verbose_name = '应用版本配置'
@@ -69,6 +76,7 @@ class ApiVersion(models.Model):
         info = {
             "current_version": self.version,
             "upgrade_version": self.upgrade_version,
+            "switch": self.switch,
         }
         return info
 

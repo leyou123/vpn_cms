@@ -293,14 +293,14 @@ class ConnectUpdate(View):
         return JsonResponse({"code": 200, "message": "success"})
 
 
-# class CountryView(View):
-#     """
-#         获取所有国家成功率
-#     """
-#     def post(self, request):
-#
-#         data = json.loads(request.body.decode(encoding="utf-8"))
-#
-#         # PingFeedback.objects.filter(ping_time=)
-#
-#         return JsonResponse({"code": 200, "message": "success", "data":{}})
+class Countryrate(View):
+    """
+        获取所有国家成功率
+    """
+    def post(self, request):
+
+        data = json.loads(request.body.decode(encoding="utf-8"))
+
+        # PingFeedback.objects.filter(ping_time=)
+
+        return JsonResponse({"code": 200, "message": "success", "data":{}})

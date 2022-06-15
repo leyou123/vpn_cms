@@ -1445,7 +1445,7 @@ class Feedback(View):
         app_name = ""
         app = AppPackage.objects.filter(package_id=package_id).first()
         if app:
-            app_name = app.name
+            app_name = app.id
 
         result = UserFeedback.objects.create(
             uid=uid,
@@ -1460,8 +1460,11 @@ class Feedback(View):
         if result:
             dingding_api = DataLoggerAPI("6543720081", "1mtv8ux938ykgw030vi2tuc3yc201ikr")
             now_time = self.get_now_time()
-            message = f" 反馈通知:{now_time} \r\n 产品：{app_name} \r\n 用户：{uid} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员：{vip_name} \r\n 问题：{envet_type} \r\n 内容：{content}"
+            # message = f" 反馈通知:{now_time} \r\n 产品：{app_name} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员：{vip_name} \r\n 问题：{envet_type} \r\n 内容：{content} \r\n 用户：{uid}"
+            message = f" 反馈通知:{now_time} \r\n 用户：{uid} \r\n 产品：{app_name} \r\n 邮箱：{user_email} \r\n 国家：{country}\r\n 会员：{vip_name} \r\n 问题：{envet_type}"
             dingding_api.dd_send_message(message[:128], "vpnoperator")
+            message2 = f" 用户：{uid} \r\n 内容：{content}"
+            dingding_api.dd_send_message(message2[:128], "vpnoperator")
             return JsonResponse({"code": 200, "message": "success"})
         return JsonResponse({"code": 404, "message": "data error"})
 
