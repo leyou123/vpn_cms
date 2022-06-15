@@ -186,9 +186,10 @@ class CountryNode(View):
         if not uid:
             return JsonResponse({"code": 404, "message": 'not fount uid'})
 
+        user = User.objects.filter(uid=int(uid)).first()
         if not country:
             # 数据库获取用户国家
-            user = User.objects.filter(uid=int(uid)).first()
+            # user = User.objects.filter(uid=int(uid)).first()
             if not user:
                 return JsonResponse({"code": 404, "message": 'not fount uid'})
 
@@ -223,6 +224,13 @@ class CountryNode(View):
             white = host.get("white", "")
             connect_data = host.get("connect_data", "")
             host_country = host.get("country", "")
+            node_type = host.get("node_type", "")
+            # if not node_type
+            try:
+                if user.member_type_id != int(node_type):
+                    continue
+            except Exception as e:
+                print("nodes -- CountryNode error:", e)
             if country in black:
                 continue
             print(country)
