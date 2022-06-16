@@ -225,16 +225,16 @@ class CountryNode(View):
             connect_data = host.get("connect_data", "")
             host_country = host.get("country", "")
             node_type = host.get("node_type", "")
-            # if not node_type
             try:
-                if user.member_type_id != int(node_type):
+                # if user.member_type_id != int(node_type):
+                if node_type != 2:
                     continue
             except Exception as e:
                 print("nodes -- CountryNode error:", e)
             if country in black:
                 continue
-            print(country)
-            print(host_country)
+            # print(country)
+            # print(host_country)
             if str(country) == str(host_country):
                 # host['connect_data'] = ""
                 # json_host = json.dumps(host)

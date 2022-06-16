@@ -1,30 +1,36 @@
+import datetime
 import requests
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 base_url = "https://api.9527.click/v2/"
+test_url = "http://54.177.55.54:10050/v2/"
 
 # 定时更新连接记录数据
 def connect_task():
 
     try:
         url = base_url + "report/connect_update"
+        # url = test_url + "report/connect_update"
         res = requests.post(url)
     except Exception as e:
-        print("ping task error:", e)
+        print("connect task error:", e)
     else:
-        print(res)
+        print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- connect task : {res}")
+
 
 
 # 定时更新连接记录数据
 def ping_task():
     try:
         url = base_url + "report/ping_update"
+        # url = test_url + "report/ping_update"
         res = requests.post(url)
     except Exception as e:
         print("ping task error:", e)
     else:
-        print(res)
+        print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- ping task : {res}")
+
 
 
 def main():
