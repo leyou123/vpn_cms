@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.generic.base import View
 from django_redis import get_redis_connection
 
-from apps.users.models import User
+from apps.users.models import User, Devices
 from utils.crypto import Aescrypt
 from vpn_cms.settings import NODE_HOST
 
@@ -38,9 +38,24 @@ class Node(View):
         if not redis_key:
             return JsonResponse({"code": 404, "message": 'not hosts'})
 
-        uid = data.get("uid", "")
-        if not uid:
-            return JsonResponse({"code": 404, "message": 'not fount uid'})
+        # uid = data.get("uid", "")
+        # if not uid:
+        #     return JsonResponse({"code": 404, "message": 'not fount uid'})
+        # user = User.objects.filter(uid=int(uid)).first()
+
+        # if not user:
+        #     return JsonResponse({"code": 404, "message": "not found user"})
+
+        uuid = data.get("uuid", "")
+        if not uuid:
+            return JsonResponse({"code": 404, "message": 'not fount uuid'})
+        device = Devices.objects.filter(uuid=uuid).first()
+        if not device:
+            return JsonResponse({"code": 404, "message": "not found device"})
+        user = User.objects.filter(uid=device.user).first()
+
+        if not user:
+            return JsonResponse({"code": 404, "message": "not found user"})
 
         # if not user or not user.country:
         #     for key in redis_key:
@@ -51,10 +66,7 @@ class Node(View):
         #     # hosts.sort(key=lambda x: x["weights"])
         #     # hosts.reverse()
         #     return JsonResponse({"code": 200, "message": "success", "data": hosts})
-        user = User.objects.filter(uid=int(uid)).first()
 
-        if not user:
-            return JsonResponse({"code": 404, "message": "not found user"})
 
         country = ""
 
@@ -231,7 +243,8 @@ class CountryNode(View):
                     continue
             except Exception as e:
                 print("nodes -- CountryNode error:", e)
-            if country in black:
+            if user.country in black:
+            # if country in black:
                 continue
             # print(country)
             # print(host_country)
