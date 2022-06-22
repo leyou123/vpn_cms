@@ -5,7 +5,7 @@ from apps.users.views import Register, Login, SendEmail, VerifyCode, Password, L
 from apps.users.views import QueryUser, UploadFlow, AddUserTime, ClearAdvertisingCount, SyncSingleUser
 from apps.users.views import Statistics, QueryOneUser, CheckUserStatus, VerifyShareCode, DelDevice, AddTime, Feedback
 from apps.users.views import DelTempUser, TestHello,ShareTask,ShareTaskStatus,ReceiveAward,QueryUserUid,AddDeviceToken,CheckLoginData,CheckBinding
-
+from apps.users.views import VerifyEmail
 
 urlpatterns = [
 
@@ -67,4 +67,5 @@ urlpatterns = [
     # 检测绑定用户
     path('check_binding', CheckBinding.as_view(), name="check_binding"),
 
+    path('verify_email', VerifyEmail.as_view(), name="verify_email"),
 ]

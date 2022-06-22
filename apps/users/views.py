@@ -1680,6 +1680,61 @@ class TestHello(View):
         return JsonResponse({"code": 200, "message": ""})
 
 
+class VerifyEmail(View):
+
+    def post(self, request):
+        """
+            验证账户密码
+            url: user/verify_email
+            参数：
+            返回数据： {"code":200, "message":"Validation successful"}
+            code 404 代表参数错误
+            code 401 代表没有此邮箱
+            code 402 代表密码错误
+            code 200 代表验证成功
+        """
+
+        data = json.loads(request.body.decode(encoding="utf-8"))
+        key = data.get("key", "")
+        aes = Aescrypt()
+        aes_result = aes.aesdecrypt(key)
+        if aes_result != "leyou2021":
+            return JsonResponse({"code": 404, "message": 'key error'})
+        uid = data.get("uid", "")
+        uuid = data.get("uuid", "")
+        platform_id = data.get("platform_id", "")
+        password = data.get("password", "")
+        email = data.get("email", "")
+        package_id = data.get("package_id", "")
+
+
+        if not email:
+            return JsonResponse({"code": 404, "message": 'not found email'})
+
+        # if not package_id:
+        #     return JsonResponse({"code": 404, "message": 'not found package_id'})
+
+        platform = AppPlatform.objects.filter(platform_id=platform_id).first()
+        if not platform:
+            return JsonResponse({"code": 404, "message": "not found platform"})
+
+        if email:
+            if not uuid:
+                return JsonResponse({"code": 404, "message": 'not found uuid or email'})
+
+            # 邮箱登录
+            password = str_as_md5(password)
+            user = User.objects.filter(platform=platform, email=email).first()
+            if not user:
+                return JsonResponse({"code": 401, "message": f"not found {email}"})
+            if user.password != password:
+                return JsonResponse({"code": 402, "message": f"Incorrect password"})
+            # user_data["uid"] = user.uid
+            # return self.check_device(user, uuid, package_id, user_data)
+            return JsonResponse({"code":200, "message":"Validation successful"})
+        else:
+            return JsonResponse({"code":404, "message":"Invalid Email"})
+
 
 
 # class SyncUser(View):
