@@ -1327,7 +1327,7 @@ class CheckAllNode(View):
                         "node_ip":item.get("node_ip", ""),
                         "country":item.get("country", ""),
                     }
-                    response = requests.post(settings.DEBUG_TEST_CMS_BASE_URL + "node/node_update_blacklist", data)
+                    response = requests.post(settings.NODE_HOST + "node/node_update_blacklist", data)
                     if response.status_code == 200:
                         print(f"{data.get('node_ip')} -- 已加入黑名单")
 
