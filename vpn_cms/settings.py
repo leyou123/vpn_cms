@@ -302,3 +302,8 @@ CACHES = {
         },
     },
 }
+
+# 测试地址
+# DEBUG_TEST_CMS_BASE_URL = "http://54.177.55.54:9000/"
+# 调试地址
+DEBUG_TEST_CMS_BASE_URL = "http://54.177.55.54:7000/"

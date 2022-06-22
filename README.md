@@ -43,7 +43,8 @@ nohup python3 /root/vpn_cms/start_script/del_temp_user.py  > /root/log/del_temp_
 
  上报ping和连接数据（在测试cms服务器运行）
 nohup python3 /root/scripts/report_update.py  > /root/log/report_update.txt 2>&1 &
-
+ 定时检查节点成功率低于目标值加入黑名单（在测试cms服务器运行）
+nohup python3 /root/scripts/update_blacklist.py  > /root/log/update_blacklist.txt 2>&1 &
 ```
 
 
