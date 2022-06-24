@@ -59,7 +59,7 @@ class ApiVersion(models.Model):
     version = models.CharField(u"线上版本号", max_length=32, null=True, default=None, blank=True)
     upgrade_version = models.CharField(u"强制升级版本号", max_length=32, null=True, default=None, blank=True)
 
-    switch = models.IntegerField(u"开关", choices=SWITCH_CHOICES, default=1)
+    switch = models.IntegerField(u"弹窗开关", choices=SWITCH_CHOICES, default=1)
 
     class Meta:
         verbose_name = '应用版本配置'
@@ -230,7 +230,7 @@ class InduceConfig(models.Model):
     version = models.CharField(u"线上版本号", max_length=128, null=True, default=None, blank=True)
     json_config = models.TextField(u"json配置", default="")
 
-    switch = models.IntegerField(u"开关", choices=SWITCH_CHOICES, default=0)
+    switch = models.IntegerField(u"收集运营商开关", choices=SWITCH_CHOICES, default=0)
 
     class Meta:
         verbose_name = '诱导配置'

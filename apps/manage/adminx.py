@@ -59,7 +59,7 @@ class InduceConfigAdmin(object):
     """
         诱导付费
     """
-    list_display = ["id", 'app', "version", "json_config"]
+    list_display = ["id", 'app', "version", "json_config", "switch"]
     model_icon = 'fa fa-info'
 
 
