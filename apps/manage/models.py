@@ -220,11 +220,17 @@ class InduceConfig(models.Model):
     """
       诱导配置
     """
+    SWITCH_CHOICES = (
+        (1, "开"),
+        (0, "关"),
+    )
 
     id = models.AutoField(primary_key=True, auto_created=True)
     app = models.ForeignKey(AppPackage, on_delete=models.CASCADE, verbose_name='APP_ID', blank=True, null=True)
     version = models.CharField(u"线上版本号", max_length=128, null=True, default=None, blank=True)
     json_config = models.TextField(u"json配置", default="")
+
+    switch = models.IntegerField(u"开关", choices=SWITCH_CHOICES, default=0)
 
     class Meta:
         verbose_name = '诱导配置'
@@ -237,7 +243,8 @@ class InduceConfig(models.Model):
 
         info = {
             "current_version": self.version,
-            "json_config": json_data
+            "json_config": json_data,
+            "operator_switch": self.switch,
         }
         return info
 
