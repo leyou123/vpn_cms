@@ -63,12 +63,14 @@ class UpdateNode(object):
         base_node = self.node_sort(base_node)
         # 获取 2个美国节点  和3个其他国家节点
         if len(us_node) >= us_node_number and len(base_node) >= us_node_number:
-            all_node = base_node[0:base_node_number] + us_node[0:us_node_number]
+            # all_node = base_node[0:base_node_number] + us_node[0:us_node_number]
+            all_node = base_node + us_node
         else:
             sum_node = base_node + us_node
 
             if len(sum_node) >= other:
-                all_node = sum_node[0:other]
+                # all_node = sum_node[0:other]
+                all_node = sum_node
             else:
                 all_node = sum_node
         return all_node
