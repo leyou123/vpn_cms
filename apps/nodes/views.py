@@ -7,6 +7,7 @@ from django.views.generic.base import View
 from django_redis import get_redis_connection
 
 from apps.users.models import User, Devices
+from apps.users.core import GeoIp
 from utils.crypto import Aescrypt
 from vpn_cms.settings import NODE_HOST
 
@@ -38,24 +39,35 @@ class Node(View):
         if not redis_key:
             return JsonResponse({"code": 404, "message": 'not hosts'})
 
-        # uid = data.get("uid", "")
-        # if not uid:
-        #     return JsonResponse({"code": 404, "message": 'not fount uid'})
-        # user = User.objects.filter(uid=int(uid)).first()
+        uuid = data.get("uuid", "")
+        uid = data.get("uid", "")
+        version = data.get("allNode", "")
+        # if uid:
+        #     user = User.objects.filter(uid=int(uid)).first()
+        # else:
+        #     if not uuid:
+        #         return JsonResponse({"code": 404, "message": 'not fount uuid'})
+        #     device = Devices.objects.filter(uuid=uuid).first()
+        #     if device:
+        #         user = User.objects.filter(uid=device.user).first()
 
+        # user = None
+        #
+        # if uuid:
+        #     device = Devices.objects.filter(uuid=uuid).first()
+        #     if device:
+        #         user = User.objects.filter(uid=device.user).first()
+        #     else:
+        #         if uid:
+        #             user = User.objects.filter(uid=int(uid)).first()
+        # else:
+        #     if uid:
+        #         user = User.objects.filter(uid=int(uid)).first()
+        #     else:
+        #         return JsonResponse({"code": 404, "message": 'not fount uid or uuid'})
+        #
         # if not user:
         #     return JsonResponse({"code": 404, "message": "not found user"})
-
-        uuid = data.get("uuid", "")
-        if not uuid:
-            return JsonResponse({"code": 404, "message": 'not fount uuid'})
-        device = Devices.objects.filter(uuid=uuid).first()
-        if not device:
-            return JsonResponse({"code": 404, "message": "not found device"})
-        user = User.objects.filter(uid=device.user).first()
-
-        if not user:
-            return JsonResponse({"code": 404, "message": "not found user"})
 
         # if not user or not user.country:
         #     for key in redis_key:
@@ -67,16 +79,49 @@ class Node(View):
         #     # hosts.reverse()
         #     return JsonResponse({"code": 200, "message": "success", "data": hosts})
 
-
         country = ""
 
-        if user.country:
-            country = user.country
+        if uuid:
+            device = Devices.objects.filter(uuid=uuid).first()
+            if device:
+                user = User.objects.filter(uid=device.user).first()
+                if not user:
+                    # print("uuid --- not found user")
+                    return JsonResponse({"code": 404, "message": "not found user"})
+                country = user.country
+                # print(f"uuid --- {country}")
+            else:
+                # 解析ip
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')  # 判断是否使用代理
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[0]  # 使用代理获取真实的ip
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
+                resp = GeoIp.get_info(ip)
+                country = resp.get("country", "")
+                # print(f"ip 解析 --- {country}")
+        else:
+            if uid:
+                user = User.objects.filter(uid=int(uid)).first()
+                if not user:
+                    # print("uid --- not found user")
+                    return JsonResponse({"code": 404, "message": "not found user"})
+                country = user.country
+                # print(f"uid --- {country}")
+            else:
+                # print("uid --- not found uid")
+                return JsonResponse({"code":404, "message":"not found uid"})
 
+
+        free_host = []
         if not country:
             for key in redis_key:
                 str_key = str(key, "utf-8")
                 json_data = json.loads(db2.get(str_key))
+                node_type = json_data.get("node_type", "")
+                if node_type == 1:
+                    free_host.append(json_data)
+                    continue
                 hosts.append(json_data)
             return JsonResponse({"code": 200, "message": "success", "data": hosts})
 
@@ -95,9 +140,18 @@ class Node(View):
             if white:
                 if country not in white:
                     continue
+            node_type = json_data.get("node_type", "")
+            if node_type == 1:
+                free_host.append(json_data)
+                continue
             hosts.append(json_data)
-        # hosts.sort(key=lambda x: x["weights"])
-        # hosts.reverse()
+
+        if version:
+            free_host.sort(key=lambda x: x["weights"])
+            free_host.reverse()
+            hosts += free_host
+        else:
+            hosts += free_host[:5]
 
         return JsonResponse({"code": 200, "message": "success", "data": hosts})
 
@@ -135,6 +189,7 @@ class Register(View):
         }
         # 'https://nodes.9527.click'
         url = f"{NODE_HOST}/user/create_single_user"
+        # url = f"http://54.177.55.54:7000/user/create_single_user"
         try:
             response = requests.post(url=url, data=data, timeout=15)
         except Exception as e:
