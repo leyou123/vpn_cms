@@ -15,6 +15,8 @@ class RedisTool(object):
     pool_two = redis.ConnectionPool(host=REDIS_HOST, port=6379, password=REDIS_PASSWORD, db=2)
     db2 = redis.Redis(connection_pool=pool_two)
 
+    pool10 = redis.ConnectionPool(host=REDIS_HOST, port=6379, password=REDIS_PASSWORD, db=10)
+    db10 = redis.Redis(connection_pool=pool10)
 
 class UpdateNode(object):
 
