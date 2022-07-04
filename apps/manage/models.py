@@ -320,3 +320,16 @@ class TimeConfig(models.Model):
         }
         return info
 
+
+class Globalconfig(models.Model):
+    """
+        隐藏节点开关
+    """
+    key = models.CharField(u"名称", max_length=128, null=True, default="", blank=True)
+    status = models.BooleanField(u"状态", default=False)
+    config = models.TextField(u"配置信息", default="", blank=True, null=True)
+    describe = models.TextField(u"描述信息", default="", blank=True, null=True)
+
+    class Meta:
+        verbose_name = '开关配置'
+        verbose_name_plural = verbose_name
