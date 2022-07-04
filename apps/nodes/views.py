@@ -8,6 +8,7 @@ from django_redis import get_redis_connection
 
 from apps.users.models import User, Devices
 from apps.users.core import GeoIp
+from apps.manage.models import Globalconfig
 from utils.crypto import Aescrypt
 from vpn_cms.settings import NODE_HOST
 
@@ -20,6 +21,7 @@ db3 = get_redis_connection('DB3')
 
 
 class Node(View):
+
 
     def post(self, request):
         """
@@ -112,6 +114,28 @@ class Node(View):
                 # print("uid --- not found uid")
                 return JsonResponse({"code":404, "message":"not found uid"})
 
+        # 获取节点是否隐藏的配置
+        node_hide_switch = -1
+        base_config = Globalconfig.objects.filter(key="base_config").first()
+        if base_config:
+            base_config.config
+            try:
+                json_data = json.loads(base_config.config)
+                node_hide_switch = json_data.get("node_hide_switch", "")
+            except Exception as e:
+                print("error")
+
+        # 获取所有测试节点
+        test_nodes = []
+        url = f"{NODE_HOST}/get_test_node"
+        # url = "http://54.177.55.54:7000/get_test_node"
+        try:
+            response = requests.post(url=url, timeout=10)
+            if response.status_code == 200:
+                node_data = json.loads(response.text)
+                test_nodes = node_data.get("nodes", [])
+        except Exception as e:
+            print("error")
 
         free_host = []
         if not country:
@@ -123,7 +147,7 @@ class Node(View):
                     free_host.append(json_data)
                     continue
                 hosts.append(json_data)
-            return JsonResponse({"code": 200, "message": "success", "data": hosts})
+            return JsonResponse({"code": 200, "message": "success", "data": hosts, "node_hide_switch":node_hide_switch, "test_nodes":test_nodes})
 
         for key in redis_key:
             str_key = str(key, "utf-8")
@@ -136,7 +160,11 @@ class Node(View):
             white = json_data.get("white", "")
             if black:
                 if country in black:
-                    continue
+                    # continue
+                    try:
+                        json_data['weights'] = -100
+                    except Exception as e:
+                        continue
             if white:
                 if country not in white:
                     continue
@@ -146,14 +174,15 @@ class Node(View):
                 continue
             hosts.append(json_data)
 
+
         if version:
-            free_host.sort(key=lambda x: x["weights"])
-            free_host.reverse()
             hosts += free_host
         else:
+            free_host.sort(key=lambda x: x["weights"])
+            free_host.reverse()
             hosts += free_host[:5]
 
-        return JsonResponse({"code": 200, "message": "success", "data": hosts})
+        return JsonResponse({"code": 200, "message": "success", "data": hosts, "node_hide_switch":node_hide_switch, "test_nodes":test_nodes})
 
 
 class Register(View):
@@ -317,3 +346,26 @@ class CountryNode(View):
             return JsonResponse({"code": 200, "message": "success", "data": result})
         else:
             return JsonResponse({"code": 200, "message": "success", "data": result})
+
+
+class UpdateNodeConfig(View):
+
+    def post(self, request):
+        """
+            更新节点配置
+        @param request:
+        @return:
+        """
+        data = json.loads(request.body.decode(encoding="utf-8"))
+        test_results = data.get("test_results", [])
+        if not test_results:
+            return JsonResponse({"code": 404, "message": "data error"})
+        # url = f"{NODE_HOST}/node/update_nodeconfig"
+        url = "http://54.177.55.54:7000/node/update_nodeconfig"
+        try:
+            response = requests.post(url, json=data)
+        except Exception as e:
+            return JsonResponse({"code": 404, "message": str(e)})
+        if response.status_code == 200:
+            return JsonResponse({"code": 200, "message": "success"})
+        return JsonResponse({"code": 404, "message": "update node config error"})
