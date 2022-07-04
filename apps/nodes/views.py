@@ -329,7 +329,11 @@ class CountryNode(View):
                 print("nodes -- CountryNode error:", e)
             if user.country in black:
             # if country in black:
-                continue
+            #     continue
+                try:
+                    host['weights'] = -100
+                except Exception as e:
+                    continue
             # print(country)
             # print(host_country)
             if str(country) == str(host_country):
