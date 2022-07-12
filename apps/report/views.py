@@ -1497,7 +1497,7 @@ class TestResultView(View):
 
 class NodeBlackView(View):
     """
-        节点黑名单
+        节点黑名单（废弃）
     """
     def post(self, request):
 
@@ -1566,3 +1566,25 @@ class NodeBlackView(View):
 
             print(r)
         return JsonResponse({"code":200, "message":"success", "data":{"results":r}})
+
+
+class DelRepoet(View):
+
+    def post(self, request):
+        """
+            定时删除全部ping和连接表数据
+        @param request:
+        @return:
+        """
+        interval = 29
+        t = datetime.date.today()
+        today = datetime.datetime.strptime(str(t), '%Y-%m-%d')
+        ago_date = today + datetime.timedelta(days=-interval)
+
+        # info_list = LinkageRecord.objects.filter(~Q(connect_time__range=(ago_date.date(), t)))
+        try:
+            # connect = LinkageRecord.objects.filter(~Q(connect_time__range=(ago_date.date(), t))).delete()
+            ping = PingFeedback.objects.filter(~Q(ping_time__range=(ago_date.date(), t))).delete()
+            return JsonResponse({"code":200, "message":"delete report data success"})
+        except Exception as e:
+            return JsonResponse({"code":404, "message":"delete report data error "})
