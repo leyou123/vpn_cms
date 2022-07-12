@@ -147,6 +147,7 @@ class Node(View):
                     free_host.append(json_data)
                     continue
                 hosts.append(json_data)
+            hosts += free_host
             return JsonResponse({"code": 200, "message": "success", "data": hosts, "node_hide_switch":node_hide_switch, "test_nodes":test_nodes})
 
         for key in redis_key:
@@ -181,7 +182,6 @@ class Node(View):
             free_host.sort(key=lambda x: x["weights"])
             free_host.reverse()
             hosts += free_host[:5]
-
         return JsonResponse({"code": 200, "message": "success", "data": hosts, "node_hide_switch":node_hide_switch, "test_nodes":test_nodes})
 
 
@@ -223,6 +223,7 @@ class Register(View):
             response = requests.post(url=url, data=data, timeout=15)
         except Exception as e:
             return JsonResponse({"code": 404, "message": str(e)})
+        print(f"{ip} -- {response.text}")
         if response:
             result = json.loads(response.text)
             code = int(result.get("code", 404))

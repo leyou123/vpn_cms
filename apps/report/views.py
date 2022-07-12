@@ -15,7 +15,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.db.models import Func, Value
 
-from .models import Switch, PingFeedback, LinkageRecord, PingFeedback2
+from .models import Switch, PingFeedback, LinkageRecord, TestResult
 from vpn_cms import settings
 
 # Create your views here.
@@ -778,8 +778,6 @@ class Countryrate(View):
             begin_time = time.time()
             r1 = LinkageRecord.objects.values("country").annotate(connect_total=connect_total).annotate(connect_failed_total=connect_failed_total)
             print(f"r1 time: {time.time() - begin_time}")
-            r2 = PingFeedback2.objects.values("country").annotate(ping_total=ping_total).annotate(ping_failed_total=ping_failed_total)
-            print(f"r2 time: {time.time() - begin_time}")
 
             results = [{**x, **y} for x, y in zip(r1, r2)]
             return results
@@ -805,8 +803,6 @@ class Countryrate(View):
             begin_time = time.time()
             r1 = LinkageRecord.objects.values("country").annotate(connect_total=connect_total).annotate(connect_failed_total=connect_failed_total)
             print(f"r1 time: {time.time() - begin_time}")
-            r2 = PingFeedback2.objects.values("country").annotate(ping_total=ping_total).annotate(ping_failed_total=ping_failed_total)
-            print(f"r2 time: {time.time() - begin_time}")
 
             results = [{**x, **y} for x, y in zip(r1, r2)]
             return results
@@ -945,10 +941,7 @@ class Countryrate(View):
             connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
             ping_failed_total=ping_failed_total)
         print(f"r1 time: {time.time() - begin_time}")
-        # r2 = PingFeedback2.objects.values("country").annotate(ping_total=ping_total).annotate(ping_failed_total=ping_failed_total)
-        # print(f"r2 time: {time.time() - begin_time}")
-        # results = [{**x, **y} for x, y in zip(r1, r2)]
-        # print(f"zip time: {time.time() - begin_time}")
+
         data = {
             "date":f"{year}-{month}-{day}",
             "connect_list":list(r1)
@@ -1071,6 +1064,7 @@ class Noderate(View):
             获取所有国家
         """
         countrys = LinkageRecord.objects.values("country").distinct().order_by(Convert('country', 'gbk').asc())
+
 
         return JsonResponse({"code": 200, "message": "success", "data":{"countrys":list(countrys)}})
 
@@ -1290,46 +1284,285 @@ class CheckAllNode(View):
 
     def post(self, request):
         """
-            统计过去三小时的所有成功率
+            获取每个国家的200条最新数据进行统计
+            1.获取连接表中所有国家进去分组去重
+            2.根据国家名称获取每个国家最新的200条数据
+            3.统计每个节点的连接成功率和ping成功率
+            4.如果 ping_rate < 80% or connect_rate < 70% 则该节点加入黑名单
         """
-        hour = 3
-        now_time = datetime.datetime.now() + datetime.timedelta(hours=8)
-        last_time = now_time - datetime.timedelta(hours=hour)
+        # hour = 3
+        # now_time = datetime.datetime.now() + datetime.timedelta(hours=8)
+        # last_time = now_time - datetime.timedelta(hours=hour)
 
-        connect_total = Count('id', filter=Q(connect_time__lte=now_time, connect_time__gte=last_time))
-        connect_failed_total = Count('id', filter=Q(connect_result=1, connect_time__lte=now_time, connect_time__gte=last_time))
-        ping_total = Count('id', filter=Q(connect_time__lte=now_time, connect_time__gte=last_time))
-        ping_failed_total = Count('id', filter=Q(ping_result=1, connect_time__lte=now_time, connect_time__gte=last_time))
+        # connect_total = Count('id', filter=Q(connect_time__lte=now_time, connect_time__gte=last_time))
+        # connect_failed_total = Count('id', filter=Q(connect_result=1, connect_time__lte=now_time, connect_time__gte=last_time))
+        # ping_total = Count('id', filter=Q(connect_time__lte=now_time, connect_time__gte=last_time))
+        # ping_failed_total = Count('id', filter=Q(ping_result=1, connect_time__lte=now_time, connect_time__gte=last_time))
 
-        r1 = LinkageRecord.objects.filter(connect_time__lte=now_time, connect_time__gte=last_time).values(
-            "country", "node_ip", "connect_time").annotate(connect_total=connect_total).annotate(
-            connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
-            ping_failed_total=ping_failed_total)
+
+        # connect_total = Count('id')
+        # connect_failed_total = Count('id', filter=Q(connect_result=1))
+        # ping_total = Count('id')
+        # ping_failed_total = Count('id', filter=Q(ping_result=1))
 
         r = []
-        for item in r1:
-            if item.get("country") == "中国":
+        limit = 200
+        # 获取是否写入黑名单的开关
+        black_flag = False
+        test_black_flag = False
+        black = Switch.objects.filter(key="black_flag").first()
+        test_black = Switch.objects.filter(key="test_black_flag").first()
+        if black and test_black:
+            black_flag = black.switch
+            test_black_flag = test_black.switch
+        # 统计每个国家每个节点的重复数量
+        ip_total = Count('node_ip')
+        # 统计每个国家每个节点的ping成功总数
+        ping_total = Count('id', filter=Q(ping_result=1))
+        # 统计每个国家每个节点的ping失败总数
+        ping_failed_total = Count('id', filter=Q(ping_result=0))
+        # 统计每个国家每个节点的连接成功总数
+        connect_total = Count('id', filter=Q(connect_result=1))
+        # 统计每个国家每个节点的连接失败总数
+        connect_failed_total = Count('id', filter=Q(connect_result=0))
+        # 获取连接表中所有国家进去分组去重
+        links = LinkageRecord.objects.values("country").annotate(Count("id"))
+        for link in links:
+            country = link.get("country", "")
+            if country == "":
+                continue
+            # country = "巴基斯坦"
+            # 根据国家名称获取每个国家最新的200条数据
+
+            r1 = LinkageRecord.objects.filter(country=country).values("node_ip", "node_name").annotate(ping_total=ping_total).annotate(
+                ping_failed_total=ping_failed_total).annotate(connect_total=connect_total).annotate(
+                connect_failed_total=connect_failed_total)
+
+            # r1 = LinkageRecord.objects.filter(country=country).order_by("-connect_time")[:limit]
+
+            for item in r1:
+                # ping成功率 = 【某国家某节点ping成功总数 / （某国家某节点ping失败总数 + 某国家某节点ping成功总数） *100】 %
                 connect_rate = 0
                 ping_rate = 0
-                if item.get("connect_failed_total") > 0:
-                    connect_rate = item.get("connect_failed_total") / item.get("connect_total") * 100
-                if item.get("ping_failed_total") > 0:
-                    ping_rate = item.get("ping_failed_total") / item.get("ping_total") * 100
-                r.append(item)
-                if ping_rate < 80 or connect_rate < 70:
-                    print({
+                ip_length = item.get("ip_total", 0)
+                ping_total_num = item.get("ping_total", 0)
+                connect_total_num = item.get("connect_total", 0)
+
+                if ping_total_num > 0:
+                    ping_rate = ping_total_num / (ping_total_num + item.get("ping_failed_total", 0)) * 100
+                if connect_total_num > 0:
+                    connect_rate = connect_total_num / (
+                                connect_total_num + item.get("connect_failed_total", 0)) * 100
+
+                r.append({
                         "ping_rate": ping_rate,
                         "connect_rate": connect_rate,
-                        "item": item
+                        "node_ip": item.get("node_ip"),
+                        "country": country,
                     })
+                data = {
+                    "node_ip": item.get("node_ip", ""),
+                    "country": country,
+                    "node_name": item.get("node_name", ""),
+                    "ping_rate": ping_rate,
+                    "connect_rate": connect_rate,
+                    "black_flag": black_flag,
+                    "test_black_flag": test_black_flag
+                }
+                # if ping_rate < 85 or connect_rate < 85:
+                if ping_rate < 70:
                     # 写入黑名单
-                    data = {
-                        "node_ip":item.get("node_ip", ""),
-                        "country":item.get("country", ""),
-                    }
-                    response = requests.post(settings.NODE_HOST + "node/node_update_blacklist", data)
-                    if response.status_code == 200:
-                        print(f"{data.get('node_ip')} -- 已加入黑名单")
+                    data['type'] = "update"
+                else:
+                    data['type'] = "remove"
+                response = requests.post(settings.NODE_HOST + "/node/node_update_blacklist", data)
+                # response = requests.post(settings.DEBUG_TEST_CMS_BASE_URL + "/node/node_update_blacklist", data)
+                if response.status_code == 200:
+                    json_data = json.loads(response.text)
+                    print(json_data.get("message"))
 
-        print(len(r))
+            # print(r)
+            # print(len(r))
+            # break
+
+
+            # r1 = LinkageRecord.objects.filter(country=country).annotate(connect_total=connect_total).annotate(
+            # connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
+            # ping_failed_total=ping_failed_total).order_by("-connect_time")[:200]
+            # 统计每个节点的连接成功率和ping成功率
+
+
+
+        # r1 = LinkageRecord.objects.filter(connect_time__lte=now_time, connect_time__gte=last_time).values(
+        #     "country", "node_ip", "connect_time").annotate(connect_total=connect_total).annotate(
+        #     connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
+        #     ping_failed_total=ping_failed_total)
+
+        # for link in links:
+        #
+        #     country = link.get("country", "")
+        #     if country == "":
+        #         continue
+        #     r1 = LinkageRecord.objects.filter(country=country).values(
+        #     "node_ip", "country", "connect_time").annotate(connect_total=connect_total).annotate(
+        #     connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
+        #     ping_failed_total=ping_failed_total).order_by("-connect_time")[:200]
+        #     # r1 = LinkageRecord.objects.filter(country=country).annotate(connect_total=connect_total).annotate(
+        #     #     connect_failed_total=connect_failed_total).annotate(ping_total=ping_total).annotate(
+        #     #     ping_failed_total=ping_failed_total).order_by("-connect_time")[:200]
+        #     # r1 = LinkageRecord.objects.filter(country=country).order_by("-connect_time")[:200]
+        #     # for item in r1:
+        #     #     # 连接成功率 = 某国家某节点连接失败总数/某国家某节点连接总数
+        #     #     # ping成功率 = 某国家某节点ping失败总数 / 某国家某节点ping总数
+        # ping成功率 = 【某国家某节点ping成功总数 / （某国家某节点ping失败总数+某国家某节点ping成功总数） *100】%
+        # 连接成功率 = 【1/ （0+1） *100】%
+        #     #     pass
+        #     r = []
+        #     for item in r1:
+        #         # if item.get("country") == "中国":
+        #         connect_rate = 0
+        #         ping_rate = 0
+        #         if item.get("connect_failed_total") > 0:
+        #             connect_rate = item.get("connect_failed_total") / item.get("connect_total") * 100
+        #         if item.get("ping_failed_total") > 0:
+        #             ping_rate = item.get("ping_failed_total") / item.get("ping_total") * 100
+        #         r.append({
+        #                 "ping_rate": ping_rate,
+        #                 "connect_rate": connect_rate,
+        #                 "node_ip": item.get("node_ip"),
+        #                 "country": item.get("country"),
+        #             })
+        #         if ping_rate < 80 or connect_rate < 70:
+        #             # print({
+        #             #     "ping_rate": ping_rate,
+        #             #     "connect_rate": connect_rate,
+        #             #     "item": item
+        #             # })
+        #             # 写入黑名单
+        #             data = {
+        #                 "node_ip":item.get("node_ip", ""),
+        #                 "country":item.get("country", ""),
+        #             }
+        #             # response = requests.post(settings.NODE_HOST + "/node/node_update_blacklist", data)
+        #             # response = requests.post(settings.DEBUG_TEST_CMS_BASE_URL + "/node/node_update_blacklist", data)
+        #             # if response.status_code == 200:
+        #             #     print(f"{data.get('node_ip')} -- 已加入黑名单")
+        #     print(r)
+        #     print(len(r))
+        #     break
         return JsonResponse({"code":200})
+
+
+class TestResultView(View):
+
+    def post(self, request):
+        """
+            上传测试数据
+        @param request:
+        @return:
+        """
+
+
+        data = json.loads(request.body.decode(encoding="utf-8"))
+        test_results = data.get("test_results", [])
+        if not test_results:
+            return JsonResponse({"code": 404, "message": "data error"})
+        ip = get_ip(request)
+        if not ip:
+            return JsonResponse({"code": 404, "message": "ip error"})
+        geo_info = get_address(ip)
+
+        for result in test_results:
+            try:
+                TestResult.objects.create(
+                    user_uuid=result.get("uuid", ""),
+                    user_ip=ip,
+                    country=geo_info.get("country", ""),
+                    city=geo_info.get("region", ""),
+                    node_ip=result.get("node_ip", ""),
+                    node_name=result.get("node_name", ""),
+                    ping_val1=result.get("ping_val1", ""),
+                    ping_val2=result.get("ping_val2", ""),
+                    ping_val3=result.get("ping_val3", ""),
+                    ping_time=result.get("ping_time", 0),
+                    utc_time=result.get("utc_time", 0),
+                )
+
+            except Exception as e:
+                print("error")
+                return JsonResponse({"code": 404, "message": "create test result error"})
+
+        return JsonResponse({"code": 200, "message": "success"})
+
+
+class NodeBlackView(View):
+    """
+        节点黑名单
+    """
+    def post(self, request):
+
+        r = []
+        limit = 200
+        # 统计每个国家每个节点的重复数量
+        ip_total = Count('node_ip')
+        # 统计每个国家每个节点的ping成功总数
+        ping_total = Count('id', filter=Q(ping_result=1))
+        # 统计每个国家每个节点的ping失败总数
+        ping_failed_total = Count('id', filter=Q(ping_result=0))
+        # 统计每个国家每个节点的连接成功总数
+        connect_total = Count('id', filter=Q(connect_result=1))
+        # 统计每个国家每个节点的连接失败总数
+        connect_failed_total = Count('id', filter=Q(connect_result=0))
+        # 获取连接表中所有国家进去分组去重
+        links = LinkageRecord.objects.values("country").annotate(Count("id"))
+        for link in links:
+            country = link.get("country", "")
+            if country == "":
+                continue
+            r1 = LinkageRecord.objects.filter(country=country).values("node_ip").annotate(
+                ping_total=ping_total).annotate(
+                ping_failed_total=ping_failed_total).annotate(connect_total=connect_total).annotate(
+                connect_failed_total=connect_failed_total)
+
+            for item in r1:
+                # ping成功率 = 【某国家某节点ping成功总数 / （某国家某节点ping失败总数 + 某国家某节点ping成功总数） *100】 %
+                connect_rate = 0
+                ping_rate = 0
+                ip_length = item.get("ip_total", 0)
+                ping_total_num = item.get("ping_total", 0)
+                connect_total_num = item.get("connect_total", 0)
+
+                if ping_total_num > 0:
+                    ping_rate = ping_total_num / (ping_total_num + item.get("ping_failed_total", 0)) * 100
+                if connect_total_num > 0:
+                    connect_rate = connect_total_num / (
+                            connect_total_num + item.get("connect_failed_total", 0)) * 100
+
+                # r.append({
+                #     "ping_rate": ping_rate,
+                #     "connect_rate": connect_rate,
+                #     "node_ip": item.get("node_ip"),
+                #     "country": country,
+                # })
+                # data = {
+                #     "node_ip": item.get("node_ip", ""),
+                #     "country": country,
+                #     "black_flag": black_flag,
+                #     "test_black_flag": test_black_flag
+                # }
+                # if ping_rate < 85 or connect_rate < 85:
+                if ping_rate < 80:
+                    # 写入黑名单
+                    r.append({
+                        "node_ip": item.get("node_ip", ""),
+                        "country": country,
+                        "ping_rate": ping_rate,
+                        "connect_rate": connect_rate,
+                        "node_name": "",
+                    })
+                # else:
+                #     data['type'] = "remove"
+
+
+            print(r)
+        return JsonResponse({"code":200, "message":"success", "data":{"results":r}})

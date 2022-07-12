@@ -73,7 +73,7 @@ class Register(View):
         :param request:
         :return:+
         """
-        time_begin = time.time()
+        
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes_result = aes.aesdecrypt(key)
@@ -361,7 +361,6 @@ class Login(View):
         :param request:
         :return:+
         """
-
         data = json.loads(request.body.decode(encoding="utf-8"))
         key = data.get("key", "")
         aes = Aescrypt()

@@ -20,7 +20,6 @@ def check_all_node():
 
 
 
-
 def main():
 
     scheduler = BlockingScheduler()

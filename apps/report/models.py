@@ -64,7 +64,6 @@ class PingFeedback(models.Model):
         verbose_name = 'ping反馈表'
         verbose_name_plural = verbose_name
 
-
 class Switch(models.Model):
     """
         控制api的开关
@@ -77,17 +76,15 @@ class Switch(models.Model):
         verbose_name = 'api开关'
         verbose_name_plural = verbose_name
 
-
-class PingFeedback2(models.Model):
+class TestResult(models.Model):
 
     """
-    ping反馈表
+        测试结果
     """
-
-    # ping反馈表：格式为：用户IP，用户国家，用户城市，节点ip，节点名称，ping返回值，ping结果【成功 / 失败】，ping时间
     PING_RESULT_CHOICES = (
+        (0, "未测试"),
         (1, "成功"),
-        (0, "失败"),
+        (2, "失败"),
     )
 
     user_uuid = models.CharField(u'uuid', max_length=128, null=True, default=None, blank=True, db_index=True)
@@ -99,9 +96,10 @@ class PingFeedback2(models.Model):
     ping_val1 = models.CharField(u"ping返回值1", max_length=128, blank=True, null=True)
     ping_val2 = models.CharField(u"ping返回值2", max_length=128, blank=True, null=True)
     ping_val3 = models.CharField(u"ping返回值3", max_length=128, blank=True, null=True)
-    ping_result = models.IntegerField(u"ping结果", choices=PING_RESULT_CHOICES, default=1, db_index=True)
-    ping_time = models.DateTimeField(u"ping时间", blank=True, null=True, db_index=True)
+    ping_result = models.IntegerField(u"ping结果", choices=PING_RESULT_CHOICES, default=0, db_index=True)
+    ping_time = models.BigIntegerField(u"ping时间", default=0, blank=True, null=True, db_index=True)
+    utc_time = models.BigIntegerField(u"utc时间", default=0, blank=True, null=True, db_index=True)
 
     class Meta:
-        verbose_name = 'ping反馈表'
+        verbose_name = '测试结果'
         verbose_name_plural = verbose_name
