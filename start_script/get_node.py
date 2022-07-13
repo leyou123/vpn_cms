@@ -7,6 +7,7 @@ REDIS_HOST = "3.101.19.69"
 REDIS_PASSWORD = "leyou2020"
 NODE_HOST = "https://nodes.9527.click"
 
+
 class RedisTool(object):
     pool_data = redis.ConnectionPool(host=REDIS_HOST, port=6379, password=REDIS_PASSWORD, db=0)
     db0 = redis.Redis(connection_pool=pool_data)
@@ -16,6 +17,7 @@ class RedisTool(object):
 
     pool10 = redis.ConnectionPool(host=REDIS_HOST, port=6379, password=REDIS_PASSWORD, db=10)
     db10 = redis.Redis(connection_pool=pool10)
+
 
 class UpdateNode(object):
 

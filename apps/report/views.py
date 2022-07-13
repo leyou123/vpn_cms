@@ -1576,15 +1576,17 @@ class DelRepoet(View):
         @param request:
         @return:
         """
-        interval = 29
+        interval = 14
+        interval_ping = 28
         t = datetime.date.today()
         today = datetime.datetime.strptime(str(t), '%Y-%m-%d')
         ago_date = today + datetime.timedelta(days=-interval)
+        ago_date_ping = today + datetime.timedelta(days=-interval_ping)
 
         # info_list = LinkageRecord.objects.filter(~Q(connect_time__range=(ago_date.date(), t)))
         try:
-            # connect = LinkageRecord.objects.filter(~Q(connect_time__range=(ago_date.date(), t))).delete()
-            ping = PingFeedback.objects.filter(~Q(ping_time__range=(ago_date.date(), t))).delete()
+            connect = LinkageRecord.objects.filter(~Q(connect_time__range=(ago_date.date(), t))).delete()
+            ping = PingFeedback.objects.filter(~Q(ping_time__range=(ago_date_ping.date(), t))).delete()
             return JsonResponse({"code":200, "message":"delete report data success"})
         except Exception as e:
             return JsonResponse({"code":404, "message":"delete report data error "})
